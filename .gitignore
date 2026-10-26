@@ -25,7 +25,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# env files
+.env
 .env*.local
 
 # vercel
@@ -34,3 +35,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma — generated SQLite database
+/prisma/hulldata.db
+/prisma/hulldata.db-journal
+/prisma/*.db
+/prisma/*.db-journal
+
+# harvested third-party press images (~300 MB) — refetched by scripts/sync-images.mjs
+/public/boats/
+/public/brands/

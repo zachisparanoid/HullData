@@ -2,26 +2,398 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ===========================================================================
+   HullData theme tokens. Dark is the default/hero experience; [data-theme="light"]
+   swaps the variable set. Everything visual references these variables, so the
+   theme toggle is a single attribute flip.
+   ======================================================================== */
+
+:root,
+:root[data-theme="dark"] {
+  --bg: #0b0f14;
+  --surface: #121821;
+  --surface-2: #19212c;
+  --border: #243140;
+  --text: #e6edf3;
+  --text-muted: #8a99a8;
+  --accent: #2dd4bf;
+  --accent-strong: #14b8a6;
+  --accent-amber: #f5a524;
+  --danger: #f87171;
+
+  --row-stripe: rgba(255, 255, 255, 0.02);
+  --row-a: var(--surface);
+  --row-b: #141b25; /* solid zebra stripe (sticky cells must be opaque) */
+  --row-hover: var(--surface-2);
+  --accent-soft: rgba(45, 212, 191, 0.12);
+  --accent-ring: rgba(45, 212, 191, 0.55);
+  --shadow-elev: transparent; /* panels are flat in dark; depth comes from borders */
+  --scrim: rgba(6, 9, 12, 0.62);
+
+  /* Low-saturation badge tones */
+  --tone-teal-fg: #5eead4;
+  --tone-teal-bg: rgba(45, 212, 191, 0.12);
+  --tone-teal-bd: rgba(45, 212, 191, 0.28);
+  --tone-amber-fg: #fbbf61;
+  --tone-amber-bg: rgba(245, 165, 36, 0.13);
+  --tone-amber-bd: rgba(245, 165, 36, 0.3);
+  --tone-slate-fg: #a7b4c2;
+  --tone-slate-bg: rgba(148, 163, 184, 0.12);
+  --tone-slate-bd: rgba(148, 163, 184, 0.26);
+  --tone-blue-fg: #7db4f0;
+  --tone-blue-bg: rgba(96, 165, 250, 0.13);
+  --tone-blue-bd: rgba(96, 165, 250, 0.3);
+  --tone-violet-fg: #b89df0;
+  --tone-violet-bg: rgba(167, 139, 250, 0.13);
+  --tone-violet-bd: rgba(167, 139, 250, 0.3);
+  --tone-green-fg: #7cd7a4;
+  --tone-green-bg: rgba(52, 211, 153, 0.12);
+  --tone-green-bd: rgba(52, 211, 153, 0.28);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root[data-theme="light"] {
+  --bg: #f6f8fa;
+  --surface: #ffffff;
+  --surface-2: #eef2f6;
+  --border: #d7dee6;
+  --text: #0b0f14;
+  --text-muted: #5b6b7a;
+  --accent: #2dd4bf;
+  --accent-strong: #14b8a6;
+  --accent-amber: #f5a524;
+  --danger: #ef4444;
+
+  --row-stripe: rgba(11, 15, 20, 0.02);
+  --row-a: var(--surface);
+  --row-b: #f1f4f8; /* solid zebra stripe */
+  --row-hover: var(--surface-2);
+  --accent-soft: rgba(20, 184, 166, 0.1);
+  --accent-ring: rgba(20, 184, 166, 0.5);
+  --shadow-elev: 0 1px 2px rgba(16, 24, 40, 0.04),
+    0 12px 28px -18px rgba(16, 24, 40, 0.22);
+  --scrim: rgba(15, 23, 32, 0.34);
+
+  --tone-teal-fg: #0f766e;
+  --tone-teal-bg: rgba(20, 184, 166, 0.12);
+  --tone-teal-bd: rgba(20, 184, 166, 0.3);
+  --tone-amber-fg: #b45309;
+  --tone-amber-bg: rgba(245, 165, 36, 0.16);
+  --tone-amber-bd: rgba(245, 165, 36, 0.36);
+  --tone-slate-fg: #475569;
+  --tone-slate-bg: rgba(100, 116, 139, 0.12);
+  --tone-slate-bd: rgba(100, 116, 139, 0.28);
+  --tone-blue-fg: #1d4ed8;
+  --tone-blue-bg: rgba(37, 99, 235, 0.1);
+  --tone-blue-bd: rgba(37, 99, 235, 0.28);
+  --tone-violet-fg: #6d28d9;
+  --tone-violet-bg: rgba(109, 40, 217, 0.1);
+  --tone-violet-bd: rgba(109, 40, 217, 0.26);
+  --tone-green-fg: #047857;
+  --tone-green-bg: rgba(4, 120, 87, 0.1);
+  --tone-green-bd: rgba(4, 120, 87, 0.26);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Layered marine depth: a faint teal aurora up top + a horizon glow.
+     Fixed so it doesn't scroll with the dense table. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        1100px 520px at 78% -8%,
+        rgba(45, 212, 191, 0.07),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 600px at 6% -2%,
+        rgba(40, 70, 92, 0.18),
+        transparent 55%
+      );
+  }
+  html[data-theme="light"] body::before {
+    background:
+      radial-gradient(
+        1100px 520px at 80% -10%,
+        rgba(45, 212, 191, 0.1),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 600px at 4% -4%,
+        rgba(20, 60, 80, 0.05),
+        transparent 55%
+      );
+  }
+
+  /* Subtle film grain for texture (very low opacity). */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  /* Themed thin scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+    background-clip: padding-box;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .panel {
+    background-color: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow-elev);
+  }
+
+  /* Tabular numerics for spec columns — aligns digits in JetBrains Mono. */
+  .num {
+    font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.01em;
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  /* SpecBadge tones */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .badge-teal {
+    color: var(--tone-teal-fg);
+    background: var(--tone-teal-bg);
+    border-color: var(--tone-teal-bd);
+  }
+  .badge-amber {
+    color: var(--tone-amber-fg);
+    background: var(--tone-amber-bg);
+    border-color: var(--tone-amber-bd);
+  }
+  .badge-slate {
+    color: var(--tone-slate-fg);
+    background: var(--tone-slate-bg);
+    border-color: var(--tone-slate-bd);
+  }
+  .badge-blue {
+    color: var(--tone-blue-fg);
+    background: var(--tone-blue-bg);
+    border-color: var(--tone-blue-bd);
+  }
+  .badge-violet {
+    color: var(--tone-violet-fg);
+    background: var(--tone-violet-bg);
+    border-color: var(--tone-violet-bd);
+  }
+  .badge-green {
+    color: var(--tone-green-fg);
+    background: var(--tone-green-bg);
+    border-color: var(--tone-green-bd);
+  }
+
+  /* Hairline tick grid used on the header for the instrument-panel feel. */
+  .tick-grid {
+    background-image: linear-gradient(
+      90deg,
+      var(--border) 1px,
+      transparent 1px
+    );
+    background-size: 13px 100%;
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      #000 30%,
+      #000 70%,
+      transparent
+    );
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .drag-none {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
+  /* Sticky cell shadow so pinned columns visibly float over scrolled content. */
+  .pin-shadow {
+    box-shadow: 14px 0 14px -12px rgba(0, 0, 0, 0.5);
+  }
+  html[data-theme="light"] .pin-shadow {
+    box-shadow: 14px 0 14px -12px rgba(16, 24, 40, 0.18);
+  }
+}
+
+/* Prominent, always-visible scrollbar for the data tables (outside @layer so it
+   beats the faint global *::-webkit-scrollbar rule) — makes horizontal overflow
+   obviously scrollable rather than looking like clipped content. */
+.hd-table-scroll {
+  scrollbar-width: auto;
+  scrollbar-color: var(--text-muted) var(--surface-2);
+}
+.hd-table-scroll::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+.hd-table-scroll::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+.hd-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 999px;
+  border: 3px solid var(--surface-2);
+  background-clip: padding-box;
+}
+.hd-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text);
+  background-clip: padding-box;
+}
+.hd-table-scroll::-webkit-scrollbar-corner {
+  background: var(--surface-2);
+}
+
+/* Opacity-only row entrance (transform would break sticky columns). */
+@keyframes hd-row-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---- Dual-thumb range slider ---- */
+.rs-input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  transform: translateY(-50%);
+  background: transparent;
+  pointer-events: none; /* only the thumb is interactive */
+}
+.rs-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  cursor: grab;
+  pointer-events: auto;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.rs-input::-webkit-slider-thumb:hover {
+  transform: scale(1.18);
+}
+.rs-input:active::-webkit-slider-thumb {
+  cursor: grabbing;
+  transform: scale(1.22);
+}
+.rs-input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+.rs-input::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  cursor: grab;
+  pointer-events: auto;
+}
+.rs-input::-moz-range-track {
+  background: transparent;
+}
+.rs-input:disabled::-webkit-slider-thumb {
+  border-color: var(--text-muted);
+  cursor: not-allowed;
+}
+.rs-input:disabled::-moz-range-thumb {
+  border-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Honor reduced-motion: kill transforms/animations, keep things instant. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -1,0 +1,90 @@
+// HullData — Prisma schema
+// Datastore: SQLite (file at prisma/hulldata.db).
+//
+// NOTE ON ENUMS: SQLite has no native enum type, and Prisma only supports
+// `enum` blocks on connectors that do (Postgres, MySQL, …). So the spec's
+// BoatCategory / HullType / Propulsion / HullMaterial are stored here as
+// String columns and constrained at the application layer via TypeScript
+// string-literal unions + Zod (see src/lib/types.ts). The seeder validates
+// every value against those unions before insert, which also makes it
+// structurally impossible to introduce a sail-powered category.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Manufacturer {
+  id           String  @id @default(cuid())
+  slug         String  @unique
+  name         String
+  country      String
+  foundedYear  Int?
+  defunctYear  Int? // null = still active
+  headquarters String?
+  description  String
+  logoUrl      String?
+  website      String?
+
+  models BoatModel[]
+
+  @@index([name])
+}
+
+model BoatModel {
+  id                  String  @id @default(cuid())
+  manufacturerId      String
+  name                String
+  category            String // BoatCategory union — see src/lib/types.ts
+  hullType            String // HullType union
+  propulsion          String // Propulsion union (power only — never sail)
+  hullMaterial        String // HullMaterial union
+  productionStartYear Int
+  productionEndYear   Int? // null = "present"
+  imageUrl            String?
+  blurb               String
+
+  manufacturer Manufacturer  @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  variants     BoatVariant[]
+
+  // Stable natural key so the seeder can upsert idempotently.
+  @@unique([manufacturerId, name])
+  @@index([manufacturerId])
+  @@index([category])
+  @@index([productionStartYear])
+}
+
+model BoatVariant {
+  id               String  @id @default(cuid())
+  boatModelId      String
+  position         Int     @default(0) // authoring order; variants[0] = representative
+  modelYear        Int? // representative year; null = whole production span
+  loaFt            Float // canonical length overall, stored in feet
+  beamFt           Float
+  draftFt          Float
+  displacementLbs  Int?
+  engineMake       String?
+  engineModel      String?
+  engineCount      Int     @default(2)
+  horsepowerEach   Int?
+  totalHorsepower  Int? // stored explicitly so single-screw is correct
+  fuelCapacityGal  Int?
+  waterCapacityGal Int?
+  cruiseSpeedKts   Float?
+  topSpeedKts      Float?
+  rangeNm          Int?
+  staterooms       Int?
+  heads            Int?
+  notes            String?
+
+  boatModel BoatModel @relation(fields: [boatModelId], references: [id], onDelete: Cascade)
+
+  @@index([boatModelId])
+  @@index([loaFt])
+  @@index([totalHorsepower])
+  @@index([modelYear])
+}
